@@ -43,5 +43,5 @@ allprojects {
 }
 
 tasks.wrapper {
-    version = "5.2.1"
+    version = "6.5.1"
 }
