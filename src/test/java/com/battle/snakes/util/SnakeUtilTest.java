@@ -13,9 +13,37 @@ class SnakeUtilTest {
 
     @Test
     void getRandomMove() {
-        // The problem with randomness is that you can never be sure...
-        SnakeUtil.getRandomMove(new ArrayList<>());
-        fail();
+        getRandomMoveWithEmptyParam();
+        getRandomMoveWithNonEmptyParam();
+    }
+
+    void getRandomMoveWithEmptyParam(){
+        // we want to see at least 2 different results out of 10 attempts,
+        // otherwise randomness isn't exactly random
+        List<MoveType> resultMoves = new ArrayList<>();
+        for (int i = 0; i < 10; i ++){
+            MoveType move = SnakeUtil.getRandomMove(new ArrayList<>());
+            if (!resultMoves.contains(move))
+                resultMoves.add(move);
+        }
+        assertTrue(resultMoves.size() > 1);
+    }
+
+    void getRandomMoveWithNonEmptyParam(){
+        // we use just 2 possibles moves here to test random number upper boundary as well
+        List<MoveType> possibleMoves = new ArrayList<>(List.of(
+                MoveType.DOWN,
+                MoveType.LEFT));
+
+        List<MoveType> resultMoves = new ArrayList<>();
+        for (int i = 0; i < 10; i ++){
+            MoveType move = SnakeUtil.getRandomMove(possibleMoves);
+            if (!resultMoves.contains(move))
+                resultMoves.add(move);
+        }
+        assertEquals(2,resultMoves.size());
+        assertTrue(resultMoves.contains(possibleMoves.get(0)));
+        assertTrue(resultMoves.contains(possibleMoves.get(1)));
     }
 
     //////////////////////////////////////////

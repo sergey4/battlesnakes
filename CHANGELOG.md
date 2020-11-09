@@ -4,22 +4,6 @@ so make it simple. Delete the contents and write your own notes here.
 
 
 -- TASK 1
-* TODO!
+* SnakeUtilTest - implemented getRandomMove test
+* SnakeUtil - implemented getRandomMove() method to satisfy the test
 
--- TASK 2
-* TODO!
-
--- TASK 3
-* TODO!
-
--- TASK 4
-* TODO!
-
--- TASK 5
-* TODO!
-
--- TASK 6
-* TODO!
-
--- TASK 7
-* TODO!

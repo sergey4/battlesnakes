@@ -15,10 +15,17 @@ public class SnakeUtil {
   private static final Random RANDOM = new Random();
 
   public static MoveType getRandomMove(List<MoveType> possibleMoves) {
-    /* TODO
+    /*
      * Given all possible moves, picks a random move
      * */
-    return MoveType.LEFT;
+    if (possibleMoves.isEmpty()) return getRandomMoveForEmptyParam();
+    int randomIndex = RANDOM.nextInt (possibleMoves.size());
+    return possibleMoves.get(randomIndex);
+  }
+
+  private static MoveType getRandomMoveForEmptyParam(){
+      int randomIndex = RANDOM.nextInt(MoveType.values().length);
+      return MoveType.values()[randomIndex];
   }
 
   public static boolean isInBounds(Board board, Coordinate coordinate) {
