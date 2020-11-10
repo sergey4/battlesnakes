@@ -92,25 +92,50 @@ public class SnakeUtil {
   }
 
   public static double getDistance(Coordinate first, Coordinate second) {
-    /* TODO
+    /*
      * Given two coordinates on a 2D grid, calculates the distance between them
      * */
-    return 0;
+    if (first.equals(second)) return 0;
+    double x = first.getX() - second.getX();
+    double y = first.getY() - second.getY();
+    return Math.sqrt(x * x + y * y);
   }
 
   public static MoveType getNearestMoveToTarget(Coordinate target, Coordinate current, List<MoveType> moves) {
-    /* TODO
+    /*
      * Given the target coordinate, the current coordinate and a list of moves, returns
      * the nearest move to the target, selected from the moves list
      * */
+    int deltaX = target.getX() - current.getX();
+    int deltaY = target.getY() - current.getY();
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if ((deltaX > 0) && moves.contains(MoveType.RIGHT))
+        return MoveType.RIGHT;
+      if ((deltaX < 0) && moves.contains(MoveType.LEFT))
+        return MoveType.LEFT;
+    }
+    if ((deltaY > 0) && moves.contains(MoveType.DOWN))
+      return MoveType.DOWN;
+    if ((deltaY < 0) && moves.contains(MoveType.UP))
+      return MoveType.UP;
+
+    if (!moves.isEmpty()) return moves.get(0);
+    // last resort
     return MoveType.LEFT;
   }
 
   public static Coordinate getNearestCoordinateToTarget(Coordinate target, List<Coordinate> coords) {
-    /* TODO
+    /*
      * Given the target coordinate and a list of coordinates, finds the nearest coordinate to the target
      * */
-    return Coordinate.builder()
-      .build();
+    double nearestDistance = Double.MAX_VALUE;
+    Coordinate nearestCoordinate = Coordinate.builder().build();
+    for (Coordinate coordinate : coords){
+      if (getDistance(coordinate, target) < nearestDistance){
+        nearestDistance = getDistance(coordinate, target);
+        nearestCoordinate = coordinate;
+      }
+    }
+    return nearestCoordinate;
   }
 }

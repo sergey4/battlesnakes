@@ -10,3 +10,7 @@ so make it simple. Delete the contents and write your own notes here.
 -- TASK 2
 * SnakeUtil - implemented getAllowedMoves() method
 
+-- TASK 3
+* SnakeUtil - implemented remaining methods so that all tests in SnakeUtilTest pass
+and "smart" snake works
+
