@@ -7,3 +7,6 @@ so make it simple. Delete the contents and write your own notes here.
 * SnakeUtilTest - implemented getRandomMove test
 * SnakeUtil - implemented getRandomMove() method to satisfy the test
 
+-- TASK 2
+* SnakeUtil - implemented getAllowedMoves() method
+
