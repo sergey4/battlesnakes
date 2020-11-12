@@ -46,6 +46,41 @@ class SnakeUtilTest {
         assertTrue(resultMoves.contains(possibleMoves.get(1)));
     }
 
+    @Test
+    void getAStarDistanceToTarget(){
+        Coordinate start = createCoordinate(2,4);
+        Coordinate target = createCoordinate(6,4);
+        List<Coordinate> food = new ArrayList<>();
+        food.add(target);
+
+        List<Coordinate> mainSnakeBody = new ArrayList<>(List.of(
+           start,
+           createCoordinate(2,5)
+        ));
+
+        Snake mainSnake = createSnake(mainSnakeBody);
+
+        List<Coordinate> otherSnakeBody = new ArrayList<>(List.of(
+           createCoordinate(4,3),
+           createCoordinate(4,4),
+           createCoordinate(4,5)
+        ));
+
+        Snake otherSnake = createSnake(otherSnakeBody);
+
+        List<Snake> snakes = new ArrayList<>(List.of(mainSnake, otherSnake));
+
+        Board board = Board.builder()
+                .width(BOARD_WIDTH)
+                .height(BOARD_HEIGHT)
+                .snakes(snakes)
+                .food(food)
+                .build();
+
+        assertEquals(0, SnakeUtil.getAStarDistanceToTarget(board, target, target));
+        assertEquals(8, SnakeUtil.getAStarDistanceToTarget(board, start, target));
+    }
+
     //////////////////////////////////////////
     /*   DO NOT EDIT BELOW THIS LINE   */
     //////////////////////////////////////////

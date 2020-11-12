@@ -3,10 +3,7 @@ package com.battle.snakes.util;
 
 import com.battle.snakes.game.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class SnakeUtil {
 
@@ -84,11 +81,91 @@ public class SnakeUtil {
   }
 
   private static List<Coordinate> getForbiddenCoordinateList(MoveRequest moveRequest){
+    return getForbiddenCoordinateList(moveRequest.getBoard());
+  }
+
+  private static List<Coordinate> getForbiddenCoordinateList(Board board){
     ArrayList<Coordinate> coordinates = new ArrayList<>();
-    for (Snake snake : moveRequest.getBoard().getSnakes()){
+    for (Snake snake : board.getSnakes()){
       coordinates.addAll(snake.getBody());
     }
     return coordinates;
+  }
+
+  public static int getAStarDistanceToTarget(Board board, Coordinate start, Coordinate target){
+    if (start.equals(target)) return 0;
+    List<Coordinate> forbiddenCoordinates = getForbiddenCoordinateList(board);
+    List<Coordinate> openSet = new ArrayList<>();
+    openSet.add(start);
+
+    Map<Coordinate, Coordinate> cameFrom = new HashMap<>();
+    Map<Coordinate, Integer> gScore = new HashMap<>();
+    gScore.put(start, 0);
+
+    Map<Coordinate, Double> fScore = new HashMap<>();
+    fScore.put(start, getDistance(start, target));
+
+    while (!openSet.isEmpty()){
+      Coordinate current = getNodeWithLowestFscore(openSet, fScore);
+      if (current.equals(target)){
+        return getPathDistance(cameFrom, current);
+      }
+      openSet.remove(current);
+
+      for (Coordinate neighbor : getNeighbors(board, forbiddenCoordinates, current)){
+        Integer tentativeGScore = gScore.get(current) + getWeight(current, neighbor);
+        if (tentativeGScore < gScore.getOrDefault(neighbor, Integer.MAX_VALUE)){
+          cameFrom.put(neighbor, current);
+          gScore.put(neighbor, tentativeGScore);
+          fScore.put(neighbor, tentativeGScore + getDistance(neighbor, target));
+          if (!openSet.contains(neighbor)){
+            openSet.add(neighbor);
+          }
+        }
+      }
+    }
+
+    // target is unreachable
+    return -1;
+  }
+
+  private static int getWeight(Coordinate current, Coordinate neighbour){
+    return Math.abs(current.getX() - neighbour.getX()) + Math.abs(current.getY() - neighbour.getY());
+  }
+
+  private static int getPathDistance(Map<Coordinate, Coordinate> cameFrom, Coordinate current){
+    int totalDistance = 0;
+    while (cameFrom.containsKey(current)){
+      current=cameFrom.get(current);
+      totalDistance++;
+    }
+    return totalDistance;
+  }
+
+  private static Coordinate getNodeWithLowestFscore(List<Coordinate> openSet, Map<Coordinate, Double> fScore){
+    Double lowestScore = Double.MAX_VALUE;
+    Coordinate lowestScoreNode = Coordinate.builder().build();
+    for (Coordinate current : openSet){
+      if (fScore.get(current) < lowestScore){
+        lowestScore = fScore.get(current);
+        lowestScoreNode = current;
+      }
+    }
+    return lowestScoreNode;
+  }
+
+// TODO: naming consistency?
+  private static List<Coordinate> getNeighbors(Board board, List<Coordinate> forbiddenCoordinates, Coordinate current){
+    List<Coordinate> neighbors = new ArrayList<>();
+
+    for (MoveType move : MoveType.values()){
+      Coordinate nextPosition = getNextMoveCoords(move, current);
+      boolean isMoveAllowed = isInBounds(board, nextPosition) &&
+              !forbiddenCoordinates.contains(nextPosition);
+      if (isMoveAllowed)
+        neighbors.add(nextPosition);
+    }
+    return neighbors;
   }
 
   public static double getDistance(Coordinate first, Coordinate second) {
@@ -100,16 +177,14 @@ public class SnakeUtil {
     double y = first.getY() - second.getY();
     return Math.sqrt(x * x + y * y);
   }
-  
+
   public static MoveType getNearestMoveToTarget(Coordinate target, Coordinate current, List<MoveType> moves) {
     /*
      * Given the target coordinate, the current coordinate and a list of moves, returns
      * the nearest move to the target, selected from the moves list
      * */
-    if ((target.getX() == null) || (target.getY() == null)){
-      if (!moves.isEmpty()) return moves.get(0);
-      return MoveType.LEFT;
-    }
+    if ((target.getX() == null) || (target.getY() == null))
+      getFallbackMove(moves);
     int deltaX = target.getX() - current.getX();
     int deltaY = target.getY() - current.getY();
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -122,10 +197,7 @@ public class SnakeUtil {
       return MoveType.DOWN;
     if ((deltaY < 0) && moves.contains(MoveType.UP))
       return MoveType.UP;
-
-    if (!moves.isEmpty()) return moves.get(0);
-    // last resort
-    return MoveType.LEFT;
+    return getFallbackMove(moves);
   }
 
   public static Coordinate getNearestCoordinateToTarget(Coordinate target, List<Coordinate> coords) {
@@ -142,4 +214,10 @@ public class SnakeUtil {
     }
     return nearestCoordinate;
   }
+
+  private static MoveType getFallbackMove(List<MoveType> moves){
+    if (!moves.isEmpty()) return moves.get(0);
+    return MoveType.LEFT;
+  }
+
 }
