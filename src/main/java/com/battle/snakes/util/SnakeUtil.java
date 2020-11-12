@@ -100,12 +100,16 @@ public class SnakeUtil {
     double y = first.getY() - second.getY();
     return Math.sqrt(x * x + y * y);
   }
-
+  
   public static MoveType getNearestMoveToTarget(Coordinate target, Coordinate current, List<MoveType> moves) {
     /*
      * Given the target coordinate, the current coordinate and a list of moves, returns
      * the nearest move to the target, selected from the moves list
      * */
+    if ((target.getX() == null) || (target.getY() == null)){
+      if (!moves.isEmpty()) return moves.get(0);
+      return MoveType.LEFT;
+    }
     int deltaX = target.getX() - current.getX();
     int deltaY = target.getY() - current.getY();
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
