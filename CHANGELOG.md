@@ -14,3 +14,7 @@ so make it simple. Delete the contents and write your own notes here.
 * SnakeUtil - implemented remaining methods so that all tests in SnakeUtilTest pass
 and "smart" snake works
 
+-- TASK 4
+* SnakeUtil / GeniusSnakeController - implemented slightly smarter snake logic, 
+using A-Star search algorithm
+

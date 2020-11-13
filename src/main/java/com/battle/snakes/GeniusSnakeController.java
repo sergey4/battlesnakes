@@ -1,6 +1,7 @@
 package com.battle.snakes;
 
 import com.battle.snakes.game.*;
+import com.battle.snakes.util.SnakeUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -41,8 +43,22 @@ public class GeniusSnakeController extends BaseController {
 
     log.info(request.toString());
 
+    List<Coordinate> body = request.getYou().getBody();
+    List<Coordinate> food = request.getBoard().getFood();
+
+    SnakeUtil.TargetPath targetPath = SnakeUtil.getBestPathToTarget(request, food);
+    if (targetPath.isReachable()) {
+      return MoveResponse.builder()
+              .move(targetPath.getMove().getValue())
+              .build();
+    }
+    // TODO:
+    // if no food is reachable, try to chase tail
+    // if not possible, just move somehow
+
     return MoveResponse.builder()
-      .move(MoveType.LEFT.getValue())
-      .build();
+            .move(MoveType.LEFT.getValue())
+            .build();
+
   }
 }

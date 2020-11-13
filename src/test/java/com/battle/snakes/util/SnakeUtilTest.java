@@ -47,7 +47,7 @@ class SnakeUtilTest {
     }
 
     @Test
-    void getAStarDistanceToTarget(){
+    void getBestPathToTarget(){
         Coordinate start = createCoordinate(2,4);
         Coordinate target = createCoordinate(6,4);
         List<Coordinate> food = new ArrayList<>();
@@ -77,8 +77,21 @@ class SnakeUtilTest {
                 .food(food)
                 .build();
 
-        assertEquals(0, SnakeUtil.getAStarDistanceToTarget(board, target, target));
-        assertEquals(8, SnakeUtil.getAStarDistanceToTarget(board, start, target));
+        Game game = Game.builder()
+                .id("3e02b354-ae29-4c3e-8c5b-26a04c764f8c")
+                .build();
+
+        MoveRequest moveRequest = MoveRequest.builder()
+                .game(game)
+                .board(board)
+                .turn(1)
+                .you(mainSnake)
+                .build();
+
+        SnakeUtil.TargetPath targetPath = SnakeUtil.getBestPathToTarget(moveRequest, food);
+        assertTrue(targetPath.isReachable());
+        assertEquals(8, targetPath.getDistance());
+        assertEquals(MoveType.RIGHT, targetPath.getMove());
     }
 
     //////////////////////////////////////////
