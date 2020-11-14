@@ -42,23 +42,29 @@ public class GeniusSnakeController extends BaseController {
   public MoveResponse move(@RequestBody MoveRequest request) {
 
     log.info(request.toString());
-
-    List<Coordinate> body = request.getYou().getBody();
     List<Coordinate> food = request.getBoard().getFood();
 
     SnakeUtil.TargetPath targetPath = SnakeUtil.getBestPathToTarget(request, food);
-    if (targetPath.isReachable()) {
-      return MoveResponse.builder()
-              .move(targetPath.getMove().getValue())
-              .build();
-    }
-    // TODO:
+    if (targetPath.isReachable())
+      return getMoveResponse(targetPath.getMove());
+
     // if no food is reachable, try to chase tail
-    // if not possible, just move somehow
+    SnakeUtil.TargetPath tailPath = SnakeUtil.getBestPathToTail(request);
+    if (tailPath.isReachable())
+      return getMoveResponse(tailPath.getMove());
 
+    // tail is not reachable, just move somehow
+    List<MoveType> moves = SnakeUtil.getAllowedMoves(request);
+    if (!moves.isEmpty())
+      return getMoveResponse(moves.get(0));
+
+    // seems that we're trapped :(
+    return getMoveResponse(MoveType.LEFT);
+  }
+
+  private MoveResponse getMoveResponse(MoveType move){
     return MoveResponse.builder()
-            .move(MoveType.LEFT.getValue())
+            .move(move.getValue())
             .build();
-
   }
 }

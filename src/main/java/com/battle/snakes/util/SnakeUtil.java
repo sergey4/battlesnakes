@@ -126,19 +126,78 @@ public class SnakeUtil {
     }
     TargetPath bestPath = new TargetPath();
     Coordinate head = moveRequest.getYou().getBody().get(0);
+    TargetPath tailPath = getBestPathToTail(moveRequest);
     for (Coordinate target : targets){
       TargetPath currentPath = getAStarPathToTarget(moveRequest, head, target);
       if (currentPath.isReachable() && (currentPath.getDistance() < bestPath.getDistance())){
-        bestPath = currentPath;
+        boolean trap = tailPath.isReachable() &&
+                isPotentialTrap(moveRequest, getNextMoveCoords(currentPath.getMove(), head));
+        if (!trap)
+          bestPath = currentPath;
       }
     }
     return bestPath;
   }
 
+  public static TargetPath getBestPathToTail(MoveRequest moveRequest){
+    return getBestPathToTail(moveRequest, moveRequest.getYou().getBody().get(0));
+  }
+
+  private static TargetPath getBestPathToTail(MoveRequest moveRequest, Coordinate start){
+    List<Coordinate> body = moveRequest.getYou().getBody();
+    Coordinate head = body.get(0);
+    Coordinate tail = body.get(body.size() - 1);
+    List<Coordinate> forbiddenCoordinates = getForbiddenCoordinates(moveRequest);
+    List<Coordinate> additionalForbiddenCoordinates = new ArrayList<>();
+    if (!head.equals(start)){
+      additionalForbiddenCoordinates.add(start);
+      forbiddenCoordinates.add(start);
+    }
+
+    List<Coordinate> tailNeighbors = getTailNeighbors(moveRequest, forbiddenCoordinates, tail);
+
+    TargetPath bestPath = new TargetPath();
+    for (Coordinate current : tailNeighbors){
+      TargetPath currentPath = getAStarPathToTarget(moveRequest, start, current, additionalForbiddenCoordinates);
+      if (currentPath.isReachable() && currentPath.getDistance() < bestPath.getDistance())
+        bestPath = currentPath;
+    }
+    return bestPath;
+  }
+
+  private static List<Coordinate> getTailNeighbors(MoveRequest moveRequest,
+                                                   List<Coordinate> forbiddenCoordinates,
+                                                   Coordinate tail){
+    ArrayList<Coordinate> fakeTailCoords = new ArrayList<>();
+    for (MoveType move : MoveType.values()){
+      Coordinate current = getNextMoveCoords(move, tail);
+      if (isInBounds(moveRequest.getBoard(), current) && !forbiddenCoordinates.contains(current)){
+        fakeTailCoords.add(current);
+      }
+    }
+    return fakeTailCoords;
+  }
+
+  // checks whether we may lose ability to go back to the tail if we make 1 step towards the target
+  private static boolean isPotentialTrap(MoveRequest moveRequest, Coordinate start){
+    TargetPath tailPath = getBestPathToTail(moveRequest, start);
+    return !tailPath.isReachable();
+  }
+
   private static TargetPath getAStarPathToTarget(MoveRequest moveRequest, Coordinate start, Coordinate target){
+    return getAStarPathToTarget(moveRequest, start, target, new ArrayList<>());
+  }
+
+  private static TargetPath getAStarPathToTarget(MoveRequest moveRequest,
+                                                 Coordinate start,
+                                                 Coordinate target,
+                                                 List<Coordinate> additionalForbiddenCoords){
     // TODO: think
     if (start.equals(target)) return new TargetPath();
     List<Coordinate> forbiddenCoordinates = getForbiddenCoordinates(moveRequest);
+
+    // TODO: check if exists?
+    forbiddenCoordinates.addAll(additionalForbiddenCoords);
     List<Coordinate> openSet = new ArrayList<>();
     openSet.add(start);
 
@@ -153,9 +212,9 @@ public class SnakeUtil {
       Coordinate current = getNodeWithLowestFScore(openSet, fScore);
       if (current.equals(target)){
         List<Coordinate> pathPoints = getPathPoints(cameFrom, current);
-        // TODO: think
+        // TODO: think about this "size() - 1"
         MoveType move = getNearestMoveToTarget(
-                pathPoints.get(pathPoints.size()-1),
+                pathPoints.get(pathPoints.size() - 1),
                 start,
                 getAllowedMoves(moveRequest)
         );

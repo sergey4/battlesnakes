@@ -48,22 +48,21 @@ class SnakeUtilTest {
 
     @Test
     void getBestPathToTarget(){
-        Coordinate start = createCoordinate(2,4);
-        Coordinate target = createCoordinate(6,4);
         List<Coordinate> food = new ArrayList<>();
-        food.add(target);
+        food.add(createCoordinate(6,4));
 
         List<Coordinate> mainSnakeBody = new ArrayList<>(List.of(
-           start,
-           createCoordinate(2,5)
+            createCoordinate(2,3),
+            createCoordinate(2,4),
+            createCoordinate(2,5)
         ));
 
         Snake mainSnake = createSnake(mainSnakeBody);
 
         List<Coordinate> otherSnakeBody = new ArrayList<>(List.of(
-           createCoordinate(4,3),
-           createCoordinate(4,4),
-           createCoordinate(4,5)
+            createCoordinate(4,3),
+            createCoordinate(4,4),
+            createCoordinate(4,5)
         ));
 
         Snake otherSnake = createSnake(otherSnakeBody);
@@ -90,8 +89,11 @@ class SnakeUtilTest {
 
         SnakeUtil.TargetPath targetPath = SnakeUtil.getBestPathToTarget(moveRequest, food);
         assertTrue(targetPath.isReachable());
-        assertEquals(8, targetPath.getDistance());
+        assertEquals(7, targetPath.getDistance());
         assertEquals(MoveType.RIGHT, targetPath.getMove());
+        // TODO: move to separate method
+        SnakeUtil.TargetPath tailPath = SnakeUtil.getBestPathToTail(moveRequest);
+        assertEquals(3, tailPath.getDistance());
     }
 
     //////////////////////////////////////////
