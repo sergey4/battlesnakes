@@ -12,15 +12,17 @@ public class SnakeUtil {
     private final boolean reachable;
     private final MoveType move;
     private final int distance;
+    private final int weight;
 
-    private TargetPath(boolean reachable, MoveType move, int distance) {
+    private TargetPath(boolean reachable, MoveType move, int distance, int weight) {
       this.reachable = reachable;
       this.move = move;
       this.distance = distance;
+      this.weight = weight;
     }
 
     private TargetPath(){
-      this(false, MoveType.LEFT, Integer.MAX_VALUE);
+      this(false, MoveType.LEFT, Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
     public boolean isReachable(){
@@ -35,9 +37,15 @@ public class SnakeUtil {
       return distance;
     }
 
+    public int getWeight() {
+      return weight;
+    }
+
   }
 
   private static final Random RANDOM = new Random();
+
+  private static final int HEAD_PADDING_WEIGHT = 25;
 
   public static MoveType getRandomMove(List<MoveType> possibleMoves) {
     /*
@@ -129,7 +137,7 @@ public class SnakeUtil {
     TargetPath tailPath = getBestPathToTail(moveRequest);
     for (Coordinate target : targets){
       TargetPath currentPath = getAStarPathToTarget(moveRequest, head, target);
-      if (currentPath.isReachable() && (currentPath.getDistance() < bestPath.getDistance())){
+      if (currentPath.isReachable() && (currentPath.getWeight() < bestPath.getWeight())){
         boolean trap = tailPath.isReachable() &&
                 isPotentialTrap(moveRequest, getNextMoveCoords(currentPath.getMove(), head));
         if (!trap)
@@ -159,7 +167,7 @@ public class SnakeUtil {
     TargetPath bestPath = new TargetPath();
     for (Coordinate current : tailNeighbors){
       TargetPath currentPath = getAStarPathToTarget(moveRequest, start, current, additionalForbiddenCoordinates);
-      if (currentPath.isReachable() && currentPath.getDistance() < bestPath.getDistance())
+      if (currentPath.isReachable() && currentPath.getDistance() < bestPath.getWeight())
         bestPath = currentPath;
     }
     return bestPath;
@@ -192,12 +200,10 @@ public class SnakeUtil {
                                                  Coordinate start,
                                                  Coordinate target,
                                                  List<Coordinate> additionalForbiddenCoords){
-    // TODO: think
-    if (start.equals(target)) return new TargetPath();
     List<Coordinate> forbiddenCoordinates = getForbiddenCoordinates(moveRequest);
+    addMissingElements(forbiddenCoordinates, additionalForbiddenCoords);
 
-    // TODO: check if exists?
-    forbiddenCoordinates.addAll(additionalForbiddenCoords);
+    Map<Coordinate, Integer> headWeights = getHeadPaddingWeightsForAll(moveRequest, forbiddenCoordinates);
     List<Coordinate> openSet = new ArrayList<>();
     openSet.add(start);
 
@@ -218,12 +224,13 @@ public class SnakeUtil {
                 start,
                 getAllowedMoves(moveRequest)
         );
-        return new TargetPath(true, move, pathPoints.size());
+        return new TargetPath(true, move, pathPoints.size(),
+                gScore.getOrDefault(target, Integer.MAX_VALUE));
       }
       openSet.remove(current);
 
       for (Coordinate neighbor : getNeighbors(moveRequest.getBoard(), forbiddenCoordinates, current)){
-        Integer tentativeGScore = gScore.get(current) + getWeight(current, neighbor);
+        Integer tentativeGScore = gScore.get(current) + getWeight(current, neighbor, headWeights);
         if (tentativeGScore < gScore.getOrDefault(neighbor, Integer.MAX_VALUE)){
           cameFrom.put(neighbor, current);
           gScore.put(neighbor, tentativeGScore);
@@ -239,8 +246,16 @@ public class SnakeUtil {
     return new TargetPath();
   }
 
-  private static int getWeight(Coordinate current, Coordinate neighbour){
-    return Math.abs(current.getX() - neighbour.getX()) + Math.abs(current.getY() - neighbour.getY());
+  private static void addMissingElements(List<Coordinate> toList, List<Coordinate> fromList){
+    for (Coordinate coordinate : fromList){
+      if (!toList.contains(coordinate))
+        toList.add(coordinate);
+    }
+  }
+
+  private static int getWeight(Coordinate current, Coordinate neighbor, Map<Coordinate, Integer> weights){
+    int weight = Math.abs(current.getX() - neighbor.getX()) + Math.abs(current.getY() - neighbor.getY());
+    return weight + weights.getOrDefault(neighbor, 0);
   }
 
   private static List<Coordinate> getPathPoints(Map<Coordinate, Coordinate> cameFrom, Coordinate current){
@@ -264,7 +279,39 @@ public class SnakeUtil {
     return lowestScoreNode;
   }
 
-// TODO: naming consistency?
+  private static Map<Coordinate, Integer> getHeadPaddingWeightsForAll(MoveRequest moveRequest,
+                                                                      List<Coordinate> forbiddenCoordinates){
+    Map<Coordinate, Integer> weightMap = new HashMap<>();
+    Coordinate mySnakeHead = moveRequest.getYou().getBody().get(0);
+    for (Snake snake : moveRequest.getBoard().getSnakes()){
+      if (snake.getBody().get(0).equals(mySnakeHead))
+        continue;
+      Map<Coordinate, Integer> snakeWeightMap = getHeadPaddingWeightsForSnake(
+              moveRequest.getBoard(),
+              snake.getBody(),
+              forbiddenCoordinates
+      );
+      weightMap.putAll(snakeWeightMap);
+    }
+    return weightMap;
+  }
+
+  private static Map<Coordinate, Integer> getHeadPaddingWeightsForSnake(Board board,
+                                                                    List<Coordinate> snakeBody,
+                                                                    List<Coordinate> forbiddenCoordinates){
+    Map<Coordinate, Integer> weightMap = new HashMap<>();
+    if (snakeBody.size() > 1){
+      Coordinate head = snakeBody.get(0);
+      for (MoveType move : MoveType.values()){
+        Coordinate current = getNextMoveCoords(move, head);
+        if (isInBounds(board, current) && !forbiddenCoordinates.contains(current)){
+          weightMap.put(current, HEAD_PADDING_WEIGHT);
+        }
+      }
+    }
+    return weightMap;
+  }
+
   private static List<Coordinate> getNeighbors(Board board, List<Coordinate> forbiddenCoordinates, Coordinate current){
     List<Coordinate> neighbors = new ArrayList<>();
 

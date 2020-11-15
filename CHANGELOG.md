@@ -15,6 +15,7 @@ so make it simple. Delete the contents and write your own notes here.
 and "smart" snake works
 
 -- TASK 4
-* SnakeUtil / GeniusSnakeController - implemented slightly smarter snake logic, 
-using A-Star search algorithm
-
+* SnakeUtil / GeniusSnakeController - implemented slightly smarter snake logic
+  * Got some ideas from here <https://rdbrck.com/news/battlesnake-2018-retrospective/> (Shiffany snake) 
+  * uses A* (A-Star) search algorithm to find path to food
+  * uses fake heads, but only to reduce risk of collision with another snake

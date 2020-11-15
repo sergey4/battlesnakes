@@ -89,8 +89,8 @@ class SnakeUtilTest {
 
         SnakeUtil.TargetPath targetPath = SnakeUtil.getBestPathToTarget(moveRequest, food);
         assertTrue(targetPath.isReachable());
-        assertEquals(7, targetPath.getDistance());
-        assertEquals(MoveType.RIGHT, targetPath.getMove());
+        assertEquals(9, targetPath.getDistance());
+        assertEquals(MoveType.UP, targetPath.getMove());
         // TODO: move to separate method
         SnakeUtil.TargetPath tailPath = SnakeUtil.getBestPathToTail(moveRequest);
         assertEquals(3, tailPath.getDistance());
