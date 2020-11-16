@@ -124,7 +124,7 @@ public class SnakeUtil {
       coordinates.addAll(snake.getBody());
     }
     // probably not needed
-    coordinates.addAll(moveRequest.getYou().getBody());
+    addMissingElements(coordinates, moveRequest.getYou().getBody());
     return coordinates;
   }
 
@@ -196,6 +196,7 @@ public class SnakeUtil {
     return getAStarPathToTarget(moveRequest, start, target, new ArrayList<>());
   }
 
+  // finds path to target using A* search algorithm
   private static TargetPath getAStarPathToTarget(MoveRequest moveRequest,
                                                  Coordinate start,
                                                  Coordinate target,
@@ -218,7 +219,6 @@ public class SnakeUtil {
       Coordinate current = getNodeWithLowestFScore(openSet, fScore);
       if (current.equals(target)){
         List<Coordinate> pathPoints = getPathPoints(cameFrom, current);
-        // TODO: think about this "size() - 1"
         MoveType move = getNearestMoveToTarget(
                 pathPoints.get(pathPoints.size() - 1),
                 start,
